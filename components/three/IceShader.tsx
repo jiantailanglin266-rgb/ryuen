@@ -212,8 +212,8 @@ export const dragonFragment = /* glsl */ `
     col += gold * sparkle * lum * (0.5 + 0.5 * sin(uTime * 2.4 + sp * 50.0)) * 0.6;
 
     // 龍眼の赤い脈動
-    float eye1 = smoothstep(0.030, 0.004, distance(vUv, vec2(0.449, 0.703)));
-    float eye2 = smoothstep(0.030, 0.004, distance(vUv, vec2(0.539, 0.704)));
+    float eye1 = smoothstep(0.030, 0.004, distance(vUv, vec2(0.449, 0.764)));
+    float eye2 = smoothstep(0.030, 0.004, distance(vUv, vec2(0.539, 0.765)));
     float pulse = 0.55 + 0.45 * sin(uTime * 2.1);
     col += vec3(1.0, 0.08, 0.06) * (eye1 + eye2) * pulse * 0.9;
 

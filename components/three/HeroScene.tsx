@@ -15,7 +15,7 @@ import IceParticles from "@/components/three/IceParticles";
 /** マウス座標（-1..1）をモジュールスコープで共有 */
 const pointer = { x: 0, y: 0 };
 
-const DRAGON_ASPECT = 1218 / 1441; // hero-main.webp の縦横比
+const DRAGON_ASPECT = 1218 / 1326; // hero-main.webp の縦横比
 
 /** 画面サイズから龍の絵のサイズ・位置を決める（横長=右寄せ / 縦長=中央） */
 function useDragonLayout() {
@@ -47,7 +47,7 @@ function DragonPlane({ tier }: { tier: "high" | "low" }) {
       uMouse: { value: new THREE.Vector2(0, 0) },
       uReveal: { value: 0 },
       uRelief: { value: 0.16 },
-      uTexel: { value: new THREE.Vector2(1 / 1218, 1 / 1441) },
+      uTexel: { value: new THREE.Vector2(1 / 1218, 1 / 1326) },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
