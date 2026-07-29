@@ -3,6 +3,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import FixedMobileCta from "@/components/layout/FixedMobileCta";
 import CustomCursor from "@/components/ui/CustomCursor";
+import SideDragons from "@/components/decor/SideDragons";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import Hero from "@/components/sections/Hero";
 import Concept from "@/components/sections/Concept";
@@ -20,6 +21,7 @@ export default function Home() {
     <SmoothScroll>
       <LoadingScreen />
       <CustomCursor />
+      <SideDragons />
       <Header />
       <main>
         <Hero />
