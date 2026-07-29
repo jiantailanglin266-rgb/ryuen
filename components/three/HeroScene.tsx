@@ -8,6 +8,7 @@ import {
   dragonVertex,
   dragonFragment,
   auraFragment,
+  logoFragment,
   heroVertex,
 } from "@/components/three/IceShader";
 import IceParticles from "@/components/three/IceParticles";
@@ -148,6 +149,107 @@ function AuraPlane() {
   );
 }
 
+const LOGO_ASPECT = 405 / 385; // logo-mark.webp の縦横比
+
+/**
+ * ブランドロゴ(落款)の 3D メダリオン。
+ * 墨の座布団 + 金の二重リング(片方は傾いて公転)の上に、
+ * 金に変換した書のロゴが浮かび、光が静かに走り抜ける。
+ */
+function LogoMedallion() {
+  const texture = useTexture(
+    `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/images/logo-mark.webp`
+  );
+  const groupRef = useRef<THREE.Group>(null);
+  const orbitRef = useRef<THREE.Mesh>(null);
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
+  const { viewport } = useThree();
+
+  const layout = useMemo(() => {
+    const isLandscape = viewport.width > viewport.height * 1.05;
+    const s = viewport.height * (isLandscape ? 0.19 : 0.13);
+    const x = isLandscape ? -viewport.width * 0.085 : -viewport.width * 0.28;
+    const y = isLandscape ? viewport.height * 0.04 : viewport.height * 0.33;
+    return { s, x, y };
+  }, [viewport.width, viewport.height]);
+
+  const uniforms = useMemo(
+    () => ({
+      uMap: { value: texture },
+      uTime: { value: 0 },
+      uReveal: { value: 0 },
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    const g = groupRef.current;
+    if (g) {
+      // 前景レイヤーとして龍より強い視差 + 揺蕩う回転
+      g.rotation.y = Math.sin(t * 0.35) * 0.1 + pointer.x * 0.16;
+      g.rotation.x = Math.cos(t * 0.28) * 0.05 - pointer.y * 0.1;
+      g.position.y = layout.y + Math.sin(t * 0.55) * viewport.height * 0.008;
+    }
+    if (orbitRef.current) {
+      orbitRef.current.rotation.z = t * 0.18;
+    }
+    const mat = materialRef.current;
+    if (mat) {
+      mat.uniforms.uTime.value = t;
+      // 龍が現れた後、少し遅れて浮かび上がる
+      if (t > 1.6 && mat.uniforms.uReveal.value < 1) {
+        mat.uniforms.uReveal.value = Math.min(
+          1,
+          mat.uniforms.uReveal.value + 0.008
+        );
+      }
+    }
+  });
+
+  return (
+    <group
+      ref={groupRef}
+      position={[layout.x, layout.y, 0.34]}
+      scale={[layout.s, layout.s, 1]}
+    >
+      {/* 墨の座布団(絵の上でも読めるよう背景を沈める) */}
+      <mesh position={[0, 0, -0.02]}>
+        <circleGeometry args={[0.82, 64]} />
+        <meshBasicMaterial
+          color="#050505"
+          transparent
+          opacity={0.55}
+          depthWrite={false}
+        />
+      </mesh>
+      {/* 金のリング(正面) */}
+      <mesh position={[0, 0, -0.01]}>
+        <torusGeometry args={[0.78, 0.004, 8, 128]} />
+        <meshBasicMaterial color="#c6a15b" transparent opacity={0.6} />
+      </mesh>
+      {/* 傾いた公転リング(3D の奥行き) */}
+      <mesh ref={orbitRef} rotation={[1.25, 0.35, 0]}>
+        <torusGeometry args={[0.88, 0.0025, 8, 128]} />
+        <meshBasicMaterial color="#d8b76a" transparent opacity={0.3} />
+      </mesh>
+      {/* 金の書ロゴ */}
+      <mesh scale={[LOGO_ASPECT, 1, 1]}>
+        <planeGeometry args={[1, 1]} />
+        <shaderMaterial
+          ref={materialRef}
+          vertexShader={heroVertex}
+          fragmentShader={logoFragment}
+          uniforms={uniforms}
+          transparent
+          depthWrite={false}
+        />
+      </mesh>
+    </group>
+  );
+}
+
 /** カメラワーク: 冒頭のドリーイン + マウス視差 + スクロールで寄る */
 function Rig({ children }: { children: React.ReactNode }) {
   const group = useRef<THREE.Group>(null);
@@ -223,6 +325,7 @@ export default function HeroScene({ tier }: Props) {
           <AuraPlane />
           <DragonHalo />
           <DragonPlane tier={tier} />
+          <LogoMedallion />
           {/* 飛沫のような金粉(絵の飛沫と呼応) */}
           <IceParticles
             count={goldCount}

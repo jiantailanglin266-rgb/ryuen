@@ -116,6 +116,18 @@ export default function Hero() {
         {/* 黒闇へのグラデーション（テキストの可読性を守る） */}
         <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-transparent to-ink-950/50" />
         <div className="absolute inset-y-0 left-0 hidden w-1/2 bg-gradient-to-r from-ink-950/80 to-transparent md:block" />
+        {/* 非3D環境用: 金の書ロゴ(落款) */}
+        {!use3D && (
+          <div className="absolute right-[10%] top-[12%] hidden w-[150px] opacity-90 md:block">
+            <Image
+              src="/images/logo-mark.webp"
+              alt=""
+              width={405}
+              height={385}
+              className="h-auto w-full"
+            />
+          </div>
+        )}
       </div>
 
       {/* 3D シーン */}

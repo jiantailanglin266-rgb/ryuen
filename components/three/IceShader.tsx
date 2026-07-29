@@ -226,6 +226,24 @@ export const dragonFragment = /* glsl */ `
   }
 `;
 
+/** ロゴ(落款)用: 透過テクスチャ + 斜めに走る金の光 */
+export const logoFragment = /* glsl */ `
+  uniform sampler2D uMap;
+  uniform float uTime;
+  uniform float uReveal;
+  varying vec2 vUv;
+
+  void main() {
+    vec4 tex = texture2D(uMap, vUv);
+    vec3 col = tex.rgb;
+    // 書の上を静かに走り抜ける光
+    float band = abs((vUv.x + vUv.y) * 0.5 - fract(uTime * 0.055) * 1.6 + 0.3);
+    float sweep = smoothstep(0.12, 0.0, band);
+    col += vec3(1.0, 0.9, 0.6) * sweep * 0.55;
+    gl_FragColor = vec4(col, tex.a * uReveal);
+  }
+`;
+
 /** 龍の背後で明滅する金のオーラ */
 export const auraFragment = /* glsl */ `
   uniform float uTime;
