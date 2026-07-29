@@ -96,20 +96,26 @@ export default function Hero() {
       className="relative flex min-h-[100svh] items-center overflow-hidden bg-ink-950"
     >
       {/* フォールバック静止画（3D 読み込みまでの下地も兼ねる） */}
-      <div className="absolute inset-0" aria-hidden={use3D}>
-        <Image
-          src="/images/hero-main.webp"
-          alt="氷菓飯店 龍園のかき氷"
-          fill
-          priority
-          sizes="100vw"
-          className={`object-cover ${
-            !use3D && !reduced ? "animate-[float-slow_18s_ease-in-out_infinite]" : ""
-          }`}
-          style={{ opacity: use3D ? 0.4 : 0.7 }}
-        />
-        {/* 黒闇へのグラデーション */}
-        <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/40 to-ink-950/70" />
+      <div
+        className="absolute inset-0 flex items-center justify-center md:justify-end md:pr-[4vw]"
+        aria-hidden={use3D}
+      >
+        <div className="relative h-[68svh] w-full max-w-full md:h-[92svh]">
+          <Image
+            src="/images/hero-main.webp"
+            alt="金泥で描かれた龍と宝珠の絵 - 氷菓飯店 龍園"
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 60vw"
+            className={`object-contain object-center md:object-right transition-opacity duration-1000 ${
+              !use3D && !reduced ? "animate-[float-slow_18s_ease-in-out_infinite]" : ""
+            }`}
+            style={{ opacity: use3D ? 0 : 0.9 }}
+          />
+        </div>
+        {/* 黒闇へのグラデーション（テキストの可読性を守る） */}
+        <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-transparent to-ink-950/50" />
+        <div className="absolute inset-y-0 left-0 hidden w-1/2 bg-gradient-to-r from-ink-950/80 to-transparent md:block" />
       </div>
 
       {/* 3D シーン */}
@@ -118,33 +124,6 @@ export default function Hero() {
           <HeroScene tier={tier} />
         </div>
       )}
-
-      {/* 龍を連想させる抽象曲線（背景装飾） */}
-      <svg
-        aria-hidden="true"
-        className="dragon-curve left-[5%] top-[10%] h-[80%] w-[90%]"
-        viewBox="0 0 800 600"
-        fill="none"
-      >
-        <path
-          d="M50 500 C 150 420, 120 300, 250 280 S 450 380, 560 280 S 640 100, 780 80"
-          stroke="url(#dragonGold)"
-          strokeWidth="1.5"
-        />
-        <path
-          d="M80 550 C 200 480, 180 360, 320 340 S 500 430, 620 320 S 700 140, 790 130"
-          stroke="url(#dragonGold)"
-          strokeWidth="0.8"
-          opacity="0.6"
-        />
-        <defs>
-          <linearGradient id="dragonGold" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stopColor="#c6a15b" stopOpacity="0" />
-            <stop offset="0.5" stopColor="#f2d58a" />
-            <stop offset="1" stopColor="#c6a15b" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-      </svg>
 
       {/* コンテンツ */}
       <div

@@ -131,6 +131,119 @@ export const mistFragment = /* glsl */ `
   }
 `;
 
+/* ============================================================
+   龍の絵画 3D 化シェーダー
+   金の筆致を高さマップとして浮き彫りにし、動的ライティングで
+   本物の金箔・金泥のような光沢を与える。
+   ============================================================ */
+
+export const dragonVertex = /* glsl */ `
+  uniform sampler2D uMap;
+  uniform float uTime;
+  uniform float uRelief;
+  varying vec2 vUv;
+  varying float vLum;
+
+  float lumOf(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+
+  void main() {
+    vUv = uv;
+    vec3 tex = texture2D(uMap, uv).rgb;
+    float lum = lumOf(tex);
+    vLum = lum;
+
+    vec3 pos = position;
+    // 筆致の起伏: 金の絵具が盛り上がる浮き彫り
+    pos.z += lum * uRelief;
+    // 龍の呼吸: 画面全体がゆっくりうねる(明るい部分ほど大きく)
+    pos.z += sin(uv.y * 5.2 + uTime * 0.65) * cos(uv.x * 3.8 - uTime * 0.45)
+             * 0.04 * (0.25 + lum);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+  }
+`;
+
+export const dragonFragment = /* glsl */ `
+  uniform sampler2D uMap;
+  uniform float uTime;
+  uniform vec2 uMouse;    // -1..1
+  uniform float uReveal;  // 0..1
+  uniform vec2 uTexel;    // 1 / テクスチャ解像度
+  varying vec2 vUv;
+  varying float vLum;
+
+  ${noiseGLSL}
+
+  float lumOf(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+
+  void main() {
+    vec2 uv = vUv;
+    // 空気の揺らぎ(ごく微細)
+    float airy = fbm(uv * 4.0 + uTime * 0.045);
+    uv += (airy - 0.5) * 0.0035;
+
+    vec3 col = texture2D(uMap, uv).rgb;
+    float lum = lumOf(col);
+
+    // 輝度勾配から法線を近似(筆致の凹凸)
+    float lx = lumOf(texture2D(uMap, uv + vec2(uTexel.x * 2.0, 0.0)).rgb)
+             - lumOf(texture2D(uMap, uv - vec2(uTexel.x * 2.0, 0.0)).rgb);
+    float ly = lumOf(texture2D(uMap, uv + vec2(0.0, uTexel.y * 2.0)).rgb)
+             - lumOf(texture2D(uMap, uv - vec2(0.0, uTexel.y * 2.0)).rgb);
+    vec3 nrm = normalize(vec3(-lx * 3.2, -ly * 3.2, 1.0));
+
+    // マウスに追従する光源で金泥が照り返す
+    vec3 lightDir = normalize(vec3(uMouse.x * 0.85, uMouse.y * 0.85, 1.0));
+    float diff = max(dot(nrm, lightDir), 0.0);
+    float spec = pow(max(dot(reflect(-lightDir, nrm), vec3(0.0, 0.0, 1.0)), 0.0), 26.0);
+
+    vec3 gold = vec3(1.0, 0.84, 0.5);
+    col *= 0.82 + diff * 0.4;
+    col += gold * spec * lum * 1.2;
+
+    // 金襴の光が斜めに走り抜ける(周期的なスイープ)
+    float sweepPos = fract(uTime * 0.085);
+    float band = abs((uv.x * 0.7 + (1.0 - uv.y) * 0.3) - sweepPos * 1.4 + 0.2);
+    float sweep = smoothstep(0.10, 0.0, band);
+    col += gold * sweep * lum * 0.5;
+
+    // 金粉の煌めき(高周波ノイズ)
+    float sp = vnoise(uv * 260.0 + floor(uTime * 1.6) * 11.0);
+    float sparkle = smoothstep(0.986, 1.0, sp);
+    col += gold * sparkle * lum * (0.5 + 0.5 * sin(uTime * 2.4 + sp * 50.0)) * 0.6;
+
+    // 龍眼の赤い脈動
+    float eye1 = smoothstep(0.030, 0.004, distance(vUv, vec2(0.449, 0.703)));
+    float eye2 = smoothstep(0.030, 0.004, distance(vUv, vec2(0.539, 0.704)));
+    float pulse = 0.55 + 0.45 * sin(uTime * 2.1);
+    col += vec3(1.0, 0.08, 0.06) * (eye1 + eye2) * pulse * 0.9;
+
+    // 墨の中から現れる
+    float mist = fbm(vUv * 3.0 + uTime * 0.02);
+    float reveal = smoothstep(uReveal * 1.35 - 0.4, uReveal * 1.35, 1.0 - mist * 0.55);
+    col *= clamp(reveal + uReveal * uReveal, 0.0, 1.0);
+
+    gl_FragColor = vec4(col, 1.0);
+  }
+`;
+
+/** 龍の背後で明滅する金のオーラ */
+export const auraFragment = /* glsl */ `
+  uniform float uTime;
+  uniform float uReveal;
+  varying vec2 vUv;
+
+  ${noiseGLSL}
+
+  void main() {
+    float d = distance(vUv, vec2(0.5, 0.52));
+    float glow = smoothstep(0.55, 0.0, d);
+    float wisp = 0.75 + 0.5 * fbm(vUv * 3.0 + vec2(uTime * 0.03, -uTime * 0.02));
+    vec3 col = vec3(0.78, 0.62, 0.34) * glow * glow * 0.4 * wisp;
+    float breathe = 0.85 + 0.15 * sin(uTime * 0.5);
+    gl_FragColor = vec4(col * breathe * uReveal, glow * 0.5 * uReveal);
+  }
+`;
+
 export const fresnelVertex = /* glsl */ `
   varying vec3 vNormal;
   varying vec3 vView;
