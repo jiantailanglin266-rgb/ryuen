@@ -1,0 +1,4 @@
+User-Agent: *
+Allow: /
+
+Sitemap: https://jiantailanglin266-rgb.github.io/ryuen/sitemap.xml

@@ -1,0 +1,252 @@
+@import "tailwindcss";
+
+/* ============================================================
+   氷菓飯店 龍園 - デザインシステム
+   テーマ:「黒闇に浮かぶ、氷と黄金の龍」
+   ============================================================ */
+
+@theme {
+  /* カラーパレット */
+  --color-ink-950: #050505;
+  --color-ink-900: #0a0a0a;
+  --color-ink-800: #111111;
+  --color-ink-700: #1a1a1a;
+  --color-ink-600: #242424;
+  --color-gold-300: #f2d58a;
+  --color-gold-400: #d8b76a;
+  --color-gold-500: #c6a15b;
+  --color-gold-600: #a4834a;
+  --color-paper: #f8f6f0;
+  --color-ice: #cfe4f2;
+  --color-mist: #8a8a8a;
+
+  /* フォント（next/font の CSS 変数を参照） */
+  --font-mincho: var(--font-shippori), "Shippori Mincho", "Yu Mincho", serif;
+  --font-gothic: var(--font-noto-sans), "Noto Sans JP", sans-serif;
+  --font-serif-en: var(--font-cormorant), "Cormorant Garamond", serif;
+
+  /* イージング */
+  --ease-silk: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-brand: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* ---------- ベース ---------- */
+
+html {
+  scroll-behavior: smooth;
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+body {
+  background: var(--color-ink-950);
+  color: var(--color-paper);
+  font-family: var(--font-gothic);
+  font-feature-settings: "palt";
+  letter-spacing: 0.06em;
+  line-height: 1.9;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(198, 161, 91, 0.35);
+  color: #fff;
+}
+
+/* フォーカスリング（アクセシビリティ） */
+:focus-visible {
+  outline: 1px solid var(--color-gold-400);
+  outline-offset: 4px;
+  border-radius: 1px;
+}
+
+/* スクロールバー */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-ink-950);
+}
+::-webkit-scrollbar-thumb {
+  background: #2c2820;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold-600);
+}
+
+/* ---------- ユーティリティ ---------- */
+
+/* 縦書き */
+.writing-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+/* 明朝見出し */
+.font-mincho {
+  font-family: var(--font-mincho);
+}
+.font-serif-en {
+  font-family: var(--font-serif-en);
+}
+
+/* 金のグラデーション文字 */
+.text-gold-gradient {
+  background: linear-gradient(
+    135deg,
+    #f2d58a 0%,
+    #c6a15b 40%,
+    #f2d58a 55%,
+    #a4834a 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* 和紙 + 粒状ノイズ（SVG グレイン） */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  pointer-events: none;
+  z-index: 80;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain-shift 9s steps(6) infinite;
+}
+
+@keyframes grain-shift {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-2%, 3%); }
+  40% { transform: translate(3%, -2%); }
+  60% { transform: translate(-3%, -3%); }
+  80% { transform: translate(2%, 2%); }
+}
+
+/* 霞（水墨画風の霧） */
+.mist-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 45% at 20% 30%, rgba(138, 138, 138, 0.05), transparent 70%),
+    radial-gradient(50% 40% at 80% 60%, rgba(138, 138, 138, 0.04), transparent 70%),
+    radial-gradient(70% 50% at 50% 90%, rgba(198, 161, 91, 0.025), transparent 70%);
+}
+
+/* 金の罫線 */
+.gold-line {
+  background: linear-gradient(90deg, transparent, var(--color-gold-500), transparent);
+  height: 1px;
+}
+
+/* 龍の抽象曲線（背景装飾用） */
+.dragon-curve {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.05;
+}
+
+/* リンク下線の伸縮 */
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  height: 1px;
+  background: var(--color-gold-400);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.5s var(--ease-silk);
+}
+.link-underline:hover::after,
+.link-underline:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* reveal 初期状態（JS 無効時も表示されるよう、JS 有効時のみ隠す） */
+html.js [data-reveal] {
+  opacity: 0;
+}
+html.js [data-reveal-mask] > * {
+  clip-path: inset(0 0 100% 0);
+}
+
+/* カスタムカーソル使用時（PC のみ、CustomCursor が付与） */
+html.custom-cursor,
+html.custom-cursor a,
+html.custom-cursor button {
+  cursor: none;
+}
+
+/* 水紋 */
+@keyframes ripple {
+  0% { transform: scale(0.3); opacity: 0.5; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* 浮遊 */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(3deg); }
+}
+
+/* きらめき */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* スクロール誘導ライン */
+@keyframes scroll-hint {
+  0% { transform: scaleY(0); transform-origin: top; }
+  45% { transform: scaleY(1); transform-origin: top; }
+  55% { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+/* 障子の光（Space セクション） */
+@keyframes shoji-light {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.7; }
+}
+
+/* prefers-reduced-motion: 全アニメーションを停止 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  html.js [data-reveal] {
+    opacity: 1;
+  }
+  html.js [data-reveal-mask] > * {
+    clip-path: none;
+  }
+}
