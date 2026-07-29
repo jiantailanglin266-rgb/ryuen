@@ -11,16 +11,6 @@ import {
 } from "@/lib/hooks";
 import { shop } from "@/data/shop";
 
-/**
- * タイトルロックアップ画像内に描かれた3つのボタンのクリック領域。
- * 画像(1371x341)内の金枠の実座標をピクセル解析して算出した割合値。
- */
-const LOCKUP_HOTSPOTS = [
-  { href: "#menu", label: "お品書きを見る", left: "48.4%", width: "15.8%" },
-  { href: "#access", label: "店舗情報", left: "65.3%", width: "12.9%" },
-  { href: shop.reserveUrl, label: "ご予約はこちら", left: "79.3%", width: "15.2%" },
-] as const;
-
 // Three.js は必要時のみ動的読み込み（SSR 無効）
 const HeroScene = dynamic(() => import("@/components/three/HeroScene"), {
   ssr: false,
@@ -39,45 +29,27 @@ export default function Hero() {
 
   const use3D = webgl === true && !reduced;
 
-  // ロックアップ画像とスクロール誘導のリビール演出
+  // スクロール誘導のリビール演出
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
     const ctx = gsap.context(() => {
       if (reduced) {
-        gsap.set("[data-hero-lockup], [data-hero-fade]", { opacity: 1, y: 0 });
+        gsap.set("[data-hero-fade]", { opacity: 1, y: 0 });
         return;
       }
-      const tl = gsap.timeline({ delay: 2.3 });
-      tl.fromTo(
-        "[data-hero-lockup]",
-        { opacity: 0, y: 36, filter: "blur(12px)" },
+      gsap.fromTo(
+        "[data-hero-fade]",
+        { opacity: 0, y: 24 },
         {
           opacity: 1,
           y: 0,
-          filter: "blur(0px)",
-          duration: 1.6,
-          ease: "power3.out",
+          stagger: 0.15,
+          duration: 1.2,
+          ease: "power2.out",
+          delay: 2.6,
         }
-      ).fromTo(
-        "[data-hero-fade]",
-        { opacity: 0, y: 24 },
-        { opacity: 1, y: 0, stagger: 0.15, duration: 1.2, ease: "power2.out" },
-        "-=0.7"
       );
-
-      // スクロールでロックアップが静かに退く
-      gsap.to("[data-hero-content]", {
-        opacity: 0,
-        y: -60,
-        ease: "none",
-        scrollTrigger: {
-          trigger: root,
-          start: "top top",
-          end: "80% top",
-          scrub: true,
-        },
-      });
     }, root);
     return () => ctx.revert();
   }, [reduced]);
@@ -110,14 +82,15 @@ export default function Hero() {
         {/* 黒闇へのグラデーション（テキストの可読性を守る） */}
         <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-transparent to-ink-950/50" />
         <div className="absolute inset-y-0 left-0 hidden w-1/2 bg-gradient-to-r from-ink-950/80 to-transparent md:block" />
-        {/* 非3D環境用: 金の書ロゴ(落款) */}
+        {/* 非3D環境用: 金の書ロゴを左側に大きく表示 */}
         {!use3D && (
-          <div className="absolute right-[10%] top-[12%] hidden w-[150px] opacity-90 md:block">
+          <div className="absolute left-1/2 top-[30%] w-[62vw] max-w-[340px] -translate-x-1/2 opacity-95 md:left-[8%] md:top-1/2 md:w-[34vw] md:max-w-[480px] md:-translate-x-0 md:-translate-y-1/2">
             <Image
               src="/images/logo-mark.webp"
-              alt=""
+              alt="氷菓飯店 龍園 ロゴ"
               width={405}
               height={385}
+              priority
               className="h-auto w-full"
             />
           </div>
@@ -131,52 +104,11 @@ export default function Hero() {
         </div>
       )}
 
-      {/* コンテンツ: タイトルロックアップ画像 */}
-      <div
-        data-hero-content
-        className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-24 pt-32 md:px-10 md:pb-0 md:pt-0"
-      >
-        {/* SEO・スクリーンリーダー用の見出し(視覚上は画像が担う) */}
-        <h1 className="sr-only">
-          氷菓飯店 龍園（HYOKA HANTEN RYUEN）- {shop.tagline}
-          静かに削り、丁寧に重ねる。一杯の氷に、季節と余白を映す。
-        </h1>
-
-        <div
-          data-hero-lockup
-          className="relative mt-[34svh] w-full drop-shadow-[0_10px_40px_rgba(0,0,0,0.6)] md:mt-0 md:max-w-[54vw] lg:max-w-[880px]"
-        >
-          {/* 和紙の光パネル(障子の光): 黒の題字を浮かび上がらせる */}
-          <div
-            aria-hidden="true"
-            className="absolute -inset-x-[2.5%] -inset-y-[14%] rounded-[999px] bg-[#f6f2e8] opacity-95 blur-[20px]"
-          />
-          <Image
-            src="/images/title-lockup.webp"
-            alt="氷菓飯店 龍園 - 新宿に、氷の余韻を。静かに削り、丁寧に重ねる。"
-            width={1371}
-            height={341}
-            priority
-            sizes="(max-width: 768px) 96vw, 54vw"
-            className="relative h-auto w-full"
-          />
-          {/* 画像内に描かれたボタンのクリック領域 */}
-          {LOCKUP_HOTSPOTS.map((spot) => (
-            <a
-              key={spot.href}
-              href={spot.href}
-              aria-label={spot.label}
-              className="absolute rounded-sm outline-offset-2 transition-shadow duration-300 hover:shadow-[0_0_24px_rgba(242,213,138,0.35)]"
-              style={{
-                left: spot.left,
-                width: spot.width,
-                top: "73%",
-                height: "20%",
-              }}
-            />
-          ))}
-        </div>
-      </div>
+      {/* SEO・スクリーンリーダー用の見出し(視覚上は3Dロゴが担う) */}
+      <h1 className="sr-only">
+        氷菓飯店 龍園（HYOKA HANTEN RYUEN）- {shop.tagline}
+        静かに削り、丁寧に重ねる。一杯の氷に、季節と余白を映す。
+      </h1>
 
       {/* スクロール誘導（縦書き + 細線） */}
       <div

@@ -167,10 +167,10 @@ function LogoMedallion() {
 
   const layout = useMemo(() => {
     const isLandscape = viewport.width > viewport.height * 1.05;
-    // ロックアップ画像(中央左)を避け、横長=左下 / 縦長=左上 に置く
-    const s = viewport.height * (isLandscape ? 0.14 : 0.1);
-    const x = isLandscape ? -viewport.width * 0.33 : -viewport.width * 0.3;
-    const y = isLandscape ? -viewport.height * 0.31 : viewport.height * 0.36;
+    // FVの主役として左側に大きく据える(縦長は中央上寄り)
+    const s = viewport.height * (isLandscape ? 0.46 : 0.24);
+    const x = isLandscape ? -viewport.width * 0.22 : 0;
+    const y = isLandscape ? 0 : viewport.height * 0.16;
     return { s, x, y };
   }, [viewport.width, viewport.height]);
 
