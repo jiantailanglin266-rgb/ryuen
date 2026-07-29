@@ -9,8 +9,17 @@ import {
   useWebGLSupport,
   useDeviceTier,
 } from "@/lib/hooks";
-import GoldButton from "@/components/ui/GoldButton";
 import { shop } from "@/data/shop";
+
+/**
+ * タイトルロックアップ画像内に描かれた3つのボタンのクリック領域。
+ * 画像(1371x341)内の金枠の実座標をピクセル解析して算出した割合値。
+ */
+const LOCKUP_HOTSPOTS = [
+  { href: "#menu", label: "お品書きを見る", left: "48.4%", width: "15.8%" },
+  { href: "#access", label: "店舗情報", left: "65.3%", width: "12.9%" },
+  { href: shop.reserveUrl, label: "ご予約はこちら", left: "79.3%", width: "15.2%" },
+] as const;
 
 // Three.js は必要時のみ動的読み込み（SSR 無効）
 const HeroScene = dynamic(() => import("@/components/three/HeroScene"), {
@@ -30,49 +39,34 @@ export default function Hero() {
 
   const use3D = webgl === true && !reduced;
 
-  // テキストの一文字ずつ表示 + 金線の演出
+  // ロックアップ画像とスクロール誘導のリビール演出
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ delay: reduced ? 0 : 0.2 });
       if (reduced) {
-        gsap.set("[data-hero-fade], .hero-char", { opacity: 1, y: 0 });
-        gsap.set("[data-hero-line]", { scaleY: 1 });
+        gsap.set("[data-hero-lockup], [data-hero-fade]", { opacity: 1, y: 0 });
         return;
       }
+      const tl = gsap.timeline({ delay: 2.3 });
       tl.fromTo(
-        "[data-hero-line]",
-        { scaleY: 0 },
-        { scaleY: 1, duration: 1.4, ease: "power3.inOut", delay: 2.2 }
-      )
-        .fromTo(
-          ".hero-char",
-          { opacity: 0, y: 30, filter: "blur(8px)" },
-          {
-            opacity: 1,
-            y: 0,
-            filter: "blur(0px)",
-            stagger: 0.09,
-            duration: 1.1,
-            ease: "power3.out",
-          },
-          "-=0.8"
-        )
-        .fromTo(
-          "[data-hero-fade]",
-          { opacity: 0, y: 24 },
-          {
-            opacity: 1,
-            y: 0,
-            stagger: 0.15,
-            duration: 1.2,
-            ease: "power2.out",
-          },
-          "-=0.6"
-        );
+        "[data-hero-lockup]",
+        { opacity: 0, y: 36, filter: "blur(12px)" },
+        {
+          opacity: 1,
+          y: 0,
+          filter: "blur(0px)",
+          duration: 1.6,
+          ease: "power3.out",
+        }
+      ).fromTo(
+        "[data-hero-fade]",
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, stagger: 0.15, duration: 1.2, ease: "power2.out" },
+        "-=0.7"
+      );
 
-      // スクロールでテキストが静かに退く
+      // スクロールでロックアップが静かに退く
       gsap.to("[data-hero-content]", {
         opacity: 0,
         y: -60,
@@ -137,65 +131,50 @@ export default function Hero() {
         </div>
       )}
 
-      {/* コンテンツ */}
+      {/* コンテンツ: タイトルロックアップ画像 */}
       <div
         data-hero-content
-        className="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-start gap-8 px-6 pb-28 pt-32 md:px-10 md:pb-20"
+        className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-24 pt-32 md:px-10 md:pb-0 md:pt-0"
       >
-        <div className="flex items-end gap-6 md:gap-10">
-          {/* 金の縦線 */}
-          <div
-            data-hero-line
-            className="hidden h-40 w-px origin-top bg-gradient-to-b from-gold-300 via-gold-500/60 to-transparent md:block"
-            aria-hidden="true"
-          />
-          <div>
-            <p
-              data-hero-fade
-              className="mb-6 font-mincho text-sm tracking-[0.5em] text-gold-300 md:text-base"
-            >
-              {shop.tagline}
-            </p>
-            <h1 className="font-mincho font-medium leading-[1.15] tracking-[0.12em] text-paper">
-              <span className="block text-5xl md:text-7xl lg:text-8xl">
-                {"氷菓飯店".split("").map((ch, i) => (
-                  <span key={i} className="hero-char inline-block">
-                    {ch}
-                  </span>
-                ))}
-              </span>
-              <span className="mt-3 block text-6xl md:mt-5 md:text-8xl lg:text-9xl">
-                {"龍園".split("").map((ch, i) => (
-                  <span key={i} className="hero-char text-gold-gradient inline-block">
-                    {ch}
-                  </span>
-                ))}
-              </span>
-            </h1>
-            <p
-              data-hero-fade
-              className="mt-6 font-serif-en text-xs tracking-[0.55em] text-paper/60 md:text-sm"
-            >
-              {shop.nameEn}
-            </p>
-          </div>
-        </div>
+        {/* SEO・スクリーンリーダー用の見出し(視覚上は画像が担う) */}
+        <h1 className="sr-only">
+          氷菓飯店 龍園（HYOKA HANTEN RYUEN）- {shop.tagline}
+          静かに削り、丁寧に重ねる。一杯の氷に、季節と余白を映す。
+        </h1>
 
-        <p
-          data-hero-fade
-          className="max-w-md font-mincho text-sm leading-loose tracking-[0.2em] text-paper/85 md:text-base"
+        <div
+          data-hero-lockup
+          className="relative mt-[34svh] w-full drop-shadow-[0_10px_40px_rgba(0,0,0,0.6)] md:mt-0 md:max-w-[54vw] lg:max-w-[880px]"
         >
-          静かに削り、丁寧に重ねる。
-          <br />
-          一杯の氷に、季節と余白を映す。
-        </p>
-
-        <div data-hero-fade className="mt-2 flex flex-wrap gap-4">
-          <GoldButton href="#menu">お品書きを見る</GoldButton>
-          <GoldButton href="#access">店舗情報</GoldButton>
-          <GoldButton href={shop.reserveUrl} variant="solid">
-            ご予約はこちら
-          </GoldButton>
+          {/* 和紙の光パネル(障子の光): 黒の題字を浮かび上がらせる */}
+          <div
+            aria-hidden="true"
+            className="absolute -inset-x-[2.5%] -inset-y-[14%] rounded-[999px] bg-[#f6f2e8] opacity-95 blur-[20px]"
+          />
+          <Image
+            src="/images/title-lockup.webp"
+            alt="氷菓飯店 龍園 - 新宿に、氷の余韻を。静かに削り、丁寧に重ねる。"
+            width={1371}
+            height={341}
+            priority
+            sizes="(max-width: 768px) 96vw, 54vw"
+            className="relative h-auto w-full"
+          />
+          {/* 画像内に描かれたボタンのクリック領域 */}
+          {LOCKUP_HOTSPOTS.map((spot) => (
+            <a
+              key={spot.href}
+              href={spot.href}
+              aria-label={spot.label}
+              className="absolute rounded-sm outline-offset-2 transition-shadow duration-300 hover:shadow-[0_0_24px_rgba(242,213,138,0.35)]"
+              style={{
+                left: spot.left,
+                width: spot.width,
+                top: "73%",
+                height: "20%",
+              }}
+            />
+          ))}
         </div>
       </div>
 

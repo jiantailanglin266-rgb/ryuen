@@ -167,9 +167,10 @@ function LogoMedallion() {
 
   const layout = useMemo(() => {
     const isLandscape = viewport.width > viewport.height * 1.05;
-    const s = viewport.height * (isLandscape ? 0.19 : 0.13);
-    const x = isLandscape ? -viewport.width * 0.085 : -viewport.width * 0.28;
-    const y = isLandscape ? viewport.height * 0.04 : viewport.height * 0.33;
+    // ロックアップ画像(中央左)を避け、横長=左下 / 縦長=左上 に置く
+    const s = viewport.height * (isLandscape ? 0.14 : 0.1);
+    const x = isLandscape ? -viewport.width * 0.33 : -viewport.width * 0.3;
+    const y = isLandscape ? -viewport.height * 0.31 : viewport.height * 0.36;
     return { s, x, y };
   }, [viewport.width, viewport.height]);
 
