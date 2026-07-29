@@ -14,7 +14,8 @@ const nextConfig: NextConfig = {
         output: "export" as const,
         basePath,
         trailingSlash: true,
-        images: { unoptimized: true },
+        // unoptimized だと basePath が src に付かないため、カスタムローダーで付与する
+        images: { loader: "custom" as const, loaderFile: "./lib/image-loader.ts" },
       }
     : {
         images: { formats: ["image/avif", "image/webp"] as const },
